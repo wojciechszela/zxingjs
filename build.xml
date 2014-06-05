@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ZXing JS port" default="help" basedir=".">
+    <description>ZXing JS port</description>
+    <tstamp>
+        <format property="build.time" pattern="yyyyMMddHHmmss" />
+    </tstamp>
+
+    <property environment="env" />
+
+    <property name="build.source" location="${basedir}/source" />
+    <property name="build.target" location="${basedir}/build" />
+    <property name="build.tools" location="${basedir}/tools" />
+    <property name="build.tools.jscover" location="${build.tools}/jscover/JSCover-all.jar" />
+    
+    <macrodef name="git">
+        <attribute name="command" />
+        <attribute name="dir" default="${basedir}" />
+        <element name="args" optional="true" />
+        <sequential>
+            <echo message="git @{command}" />
+            <exec executable="git" dir="@{dir}">
+                <arg value="@{command}" />
+                <args/>
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <condition property="isUnix">
+        <and>
+            <os family="unix" />
+
+            <not>
+                <os family="mac" />
+            </not>
+        </and>
+    </condition>
+    <condition property="isWindows">
+        <os family="windows" />
+    </condition>
+    <condition property="isMac">
+        <os family="mac" />
+    </condition>
+
+    <target name="help">
+        <echo>Usage:</echo>
+        <echo></echo>
+        <echo>Display this help message:</echo>
+        <echo>    ant help</echo>
+        <echo></echo>
+        <echo>Display environment information:</echo>
+        <echo>    ant info</echo>
+        <echo></echo>
+        <echo>Download dependencies:</echo>
+        <echo>    ant deps</echo>
+        <echo></echo>
+        <echo>Run jsHint:</echo>
+        <echo>    ant jshint</echo>
+        <echo></echo>
+        <echo>Generate documentation:</echo>
+        <echo>    ant doc</echo>
+        <echo></echo>
+        <echo>Start JSCover:</echo>
+        <echo>(after starting the server open http://localhost:8081)</echo>
+        <echo>    ant startjscover</echo>
+        <echo></echo>
+        <echo>Run unit tests:</echo>
+        <echo>    ant unittest</echo>
+        <echo></echo>
+        <echo>Run unit tests and generate code coverage report:</echo>
+        <echo>    ant unittestandcoverage</echo>
+    </target>
+    
+    <target name="info" depends="_gitRevision">
+        <echo message="------------------------------------------------------------" />
+        <echo message="Environment settings" />
+        <echo message="====================" />
+        <echo message="Project       : ${ant.project.name}" />
+        <echo message="User          : ${user.name}" />
+        <echo message="Built on      : ${os.name} ${os.arch}"/>
+        <echo message="Base dir      : ${basedir}"          />
+        <echo message="Build file    : ${ant.file}"         />
+        <echo message="Java version  : ${ant.java.version}" />
+        <echo message="" />        
+        <echo message="Build settings" />
+        <echo message="==============" />
+        <echo message="Time          : ${build.time}" />
+        <echo message="Revision      : ${git.revision}" />
+        <echo message="------------------------------------------------------------" />
+    </target>
+    
+    <target name="depsUnix" if="isUnix">
+        <property name="build.deps.phantomjsUrl" value="https://phantomjs.googlecode.com/files/phantomjs-1.9.2-linux-x86_64.tar.bz2" />
+        <property name="build.deps.phantomjsArchive" value="phantomjs-1.9.2-linux-x86_64.tar.bz2" />
+    </target>
+    
+    <target name="_getPhantomjs">
+        <mkdir dir="${build.tools}/phantomjs" />
+        <get src="${build.deps.phantomjsUrl}" dest="${build.tools}/${build.deps.phantomjsArchive}" />
+        <untar compression="bzip2" src="${build.tools}/${build.deps.phantomjsArchive}" dest="${build.tools}/phantomjs">
+            <patternset>
+                <include name="**/bin/phantomjs*" />
+            </patternset>
+            <mapper type="flatten"/>
+        </untar>
+        <chmod file="${build.tools}/phantomjs/phantomjs" perm="u+x" />
+        <delete file="${build.tools}/${build.deps.phantomjsArchive}" />
+    </target>
+    
+    <target name="_getJSCover">
+        <mkdir dir="${build.tools}/jscover" />
+        <get src="http://hivelocity.dl.sourceforge.net/project/jscover/JSCover-1.0.5.zip" dest="${build.tools}/jscover" />
+        <unzip src="${build.tools}/jscover/JSCover-1.0.5.zip" dest="${build.tools}/jscover">
+            <patternset>
+                <include name="target/dist/JSCover-all.jar" />
+            </patternset>
+            <mapper type="flatten"/>
+        </unzip>
+        <delete file="${build.tools}/jscover/JSCover-1.0.5.zip" />
+    </target>
+    
+    <target name="_getJasmine">
+        <mkdir dir="${build.tools}/jasmine" />
+        <get src="https://github.com/pivotal/jasmine/raw/master/dist/jasmine-standalone-2.0.0.zip" dest="${build.tools}/jasmine" />
+    	<unzip src="${build.tools}/jasmine/jasmine-standalone-2.0.0.zip" dest="${build.tools}/jasmine">
+            <patternset>
+            	<include name="lib/jasmine-2.0.0/*.*" />
+            </patternset>
+            <mapper type="flatten" />
+        </unzip>
+    	<delete file="${build.tools}/jasmine/jasmine-standalone-2.0.0.zip" />
+    </target>
+    
+    <target name="_getRequirejs">
+        <mkdir dir="${build.source}/vendor/requirejs" />
+        <get src="http://requirejs.org/docs/release/2.1.11/minified/require.js" dest="${build.source}/vendor/requirejs" />
+        <get src="https://raw.github.com/requirejs/text/latest/text.js" dest="${build.source}/vendor/requirejs" />
+        <get src="https://raw.github.com/requirejs/domReady/latest/domReady.js" dest="${build.source}/vendor/requirejs" />
+        <get src="https://raw.github.com/millermedeiros/requirejs-plugins/master/src/async.js" dest="${build.source}/vendor/requirejs" />
+        <get src="http://requirejs.org/docs/release/2.1.11/r.js" dest="${build.tools}" />
+        <get src="https://raw.githubusercontent.com/chadly/requirejs-web-workers/master/src/worker.js" dest="${build.source}/vendor/requirejs" />
+        <get src="https://raw.githubusercontent.com/chadly/requirejs-web-workers/master/src/worker-fake.js" dest="${build.source}/vendor/requirejs" />
+        </target>
+    
+    <target name="_getMout">
+        <mkdir dir="${build.source}/vendor/mout" />
+        <get src="https://github.com/mout/mout/archive/v0.9.1.zip" dest="${build.source}/vendor/mout" />
+        <unzip src="${build.source}/vendor/mout/v0.9.1.zip" dest="${build.source}/vendor/mout">
+            <patternset>
+                <include name="mout-0.9.1/src/**/*" />
+            </patternset>
+            <mapper type="glob" from="mout-0.9.1/src/*" to="*" />
+        </unzip>
+        <delete file="${build.source}/vendor/mout/v0.9.1.zip" />
+    </target>
+    
+    <target name="_getDejavu">
+        <mkdir dir="${build.source}/vendor/dejavu" />
+        <mkdir dir="${build.source}/vendor/dejavu/strict" />
+        <mkdir dir="${build.source}/vendor/dejavu/loose" />
+        <mkdir dir="${build.source}/vendor/dejavu" />
+        <get src="https://codeload.github.com/IndigoUnited/dejavu/zip/0.4.4" dest="${build.source}/vendor/dejavu/dejavu-0.4.4.zip" />
+        <unzip src="${build.source}/vendor/dejavu/dejavu-0.4.4.zip" dest="${build.source}/vendor/dejavu/strict">
+            <patternset>
+                <include name="js-dejavu-0.4.4/dist/amd/strict/**/*" />
+            </patternset>
+            <mapper type="glob" from="js-dejavu-0.4.4/dist/amd/strict/*" to="*" />
+        </unzip>
+        <unzip src="${build.source}/vendor/dejavu/dejavu-0.4.4.zip" dest="${build.source}/vendor/dejavu/loose">
+            <patternset>
+                <include name="js-dejavu-0.4.4/dist/amd/loose/**/*" />
+            </patternset>
+            <mapper type="glob" from="js-dejavu-0.4.4/dist/amd/loose/*" to="*" />
+        </unzip>
+        <delete file="${build.source}/vendor/dejavu/dejavu-0.4.4.zip" />
+    </target>
+
+    <target name="deps" depends="depsUnix, _getJasmine, _getPhantomjs, _getJSCover, _getRequirejs, _getMout, _getDejavu">
+    </target>
+
+    <target name="cleanup">
+        <delete dir="${build.target}" />
+    </target>
+    
+    <target name="_gitRevision">
+        <exec dir="${basedir}" executable="git" outputproperty="git.revision">
+            <arg value="log" />
+            <arg value="-1" />
+            <arg value="--pretty=format:%h" />
+        </exec>
+    </target>
+
+    <target name="init" depends="cleanup, _gitRevision">
+        <mkdir dir="${build.target}" />
+        <mkdir dir="${build.target}/api" />
+        <mkdir dir="${build.target}/coverage" />
+        <mkdir dir="${build.target}/out" />
+    </target>
+    
+    <target name="startjscover" depends="init">
+        <java jar="${build.tools.jscover}" fork="true" spawn="true">
+            <jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="-ws" />
+            <arg value="--document-root=." />
+            <arg value="--report-dir=${build.target}/coverage" />
+            <arg value="--no-instrument=build" />
+            <arg value="--no-instrument=source/config" />
+            <arg value="--no-instrument=source/vendor" />
+            <arg value="--no-instrument=test" />
+            <arg value="--no-instrument=tools" />
+            <arg value="--no-function" />
+            <arg value="--port=8081"/>
+        </java>
+        <waitfor maxwait="5" maxwaitunit="second" checkevery="250" checkeveryunit="millisecond" timeoutproperty="failed">
+            <http url="http://localhost:8081/jscoverage.html"/>
+        </waitfor>
+        <fail if="failed" />
+        <echo message="JSCover has been run. URL: http://localhost:8081/jscoverage.html " />
+    </target>
+    
+    <target name="stopjscover">
+        <get src="http://localhost:8081/stop" dest="/dev/null" />
+    </target>
+
+    <target name="unittest" depends="_loadalljs">
+        <copy file="${build.source}/config/require.dist.js" tofile="${build.source}/config/require.js" />
+        <exec dir="${basedir}" executable="tools/phantomjs/phantomjs" failonerror="true">
+            <arg line="tools/phantomjs/phantom-jscover-jasmine.js" />
+            <arg line="./test/index.html" />
+        </exec>
+    </target>
+
+    <target name="unittestandcoverage" depends="_loadalljs">
+        <copy file="${build.source}/config/require.dist.js" tofile="${build.source}/config/require.js" />
+        <exec dir="${basedir}" executable="tools/phantomjs/phantomjs" failonerror="true">
+            <arg line="tools/phantomjs/phantom-jscover-jasmine.js" />
+            <arg line="http://localhost:8081/jscoverage.html?test/index.html" />
+        </exec>
+    </target>
+    
+    <target name="jshint">
+        <exec dir="${basedir}" executable="jshint">
+            <arg line="-c jshint.json" />
+            <arg line="source/zxing test" />
+            </exec>
+    </target>
+    
+    <target name="doc" depends="init">
+        <exec dir="${build.target}" executable="jsduck">
+            <arg line="--external=Q.Promise,Window" />
+            <arg line="--output ${build.target}/api" />
+            <arg line="${build.source}/zxing" />
+        </exec>
+    </target>
+    
+    <target name="_loadalljs">
+        <path id="id.loadall.js">
+            <fileset dir="${build.source}/zxing" includes="**/*.js*" />
+        </path>
+        <pathconvert property="prop.loadall.js" refid="id.loadall.js" pathsep="','">
+            <mapper type="regexp" from="^${build.source}/(.*)\.js$" to="\1"/>
+        </pathconvert>
+        <echo file="${build.source}/_zxing.js">${prop.loadall.js}</echo>
+        <concat destfile="${build.source}/zxing.js">
+            <header filtering="no" trimleading="yes">require(['</header>
+            <fileset dir="${build.source}" includes="_zxing.js"/>
+            <footer filtering="no" trimleading="yes">']);</footer>
+        </concat>
+        <delete file="${build.source}/_zxing.js" />
+    </target>
+
+    <target name="release" depends="init, _loadalljs">
+        <exec dir="${basedir}" executable="node">
+            <arg line="./tools/r.js" />
+            <arg line="-o build-plain.js" />
+        </exec>
+        <exec dir="${basedir}" executable="node">
+            <arg line="./tools/r.js" />
+            <arg line="-o build-min.js" />
+        </exec>
+    </target>
+</project>

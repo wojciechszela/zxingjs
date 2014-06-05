@@ -1,0 +1,14 @@
+.project
+.settings
+.externalToolBuilders
+/build/
+/tools/jasmine/
+/tools/jscover/
+/tools/phantomjs/phantomjs
+/tools/r.js
+/source/config/require.js
+/source/foxtrot.js
+/source/vendor/dejavu
+/source/vendor/gettext
+/source/vendor/mout
+/source/vendor/requirejs
