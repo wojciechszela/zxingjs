@@ -12,8 +12,9 @@ define([
     'zxing/oned/UPCEANHelper',
     'zxing/exception/NotFoundException',
     'mout/lang/isArray',
+    'mout/lang/isObject',
     'mout/array/contains'
-], function (FinalClass, BarcodeFormat, DecodeHintType, Result, OneDReader, EAN8Reader, EAN13Reader, UPCAReader, UPCEReader, UPCEANReader, UPCEANHelper, NotFoundException, isArray, contains) {
+], function (FinalClass, BarcodeFormat, DecodeHintType, Result, OneDReader, EAN8Reader, EAN13Reader, UPCAReader, UPCEReader, UPCEANReader, UPCEANHelper, NotFoundException, isArray, isObject, contains) {
     'use strict';
 
     /**
@@ -26,7 +27,7 @@ define([
         __readers : null,
 
         initialize : function (hints) {
-            var possibleFormats = (hints instanceof DecodeHintType) ? hints.get(DecodeHintType.$static.POSSIBLE_FORMATS) : null;
+            var possibleFormats = isObject(hints) ? hints[DecodeHintType.$static.POSSIBLE_FORMATS] : null;
             var readers = new Array();
 
             if (isArray(possibleFormats)) {

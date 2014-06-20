@@ -77,29 +77,27 @@ define([
         },
 
         getMatrix : function () {
-            throw new Error('reimplement to work with rgba array');
             var width = this.getWidth();
             var height = this.getHeight();
 
-            if (width === this.__dataWidth && height === this.__dataHeight) {
-                return this.__luminances;
-            }
+//            if (width === this.__dataWidth && height === this.__dataHeight) {
+//                return this.__luminances;
+//            }
 
             var area = width * height;
-            var matrix = new Uint8Array[area];
-            var inputOffset = this.__top * this.__dataWidth + this.__left;
-
-            if (width === this.__dataWidth) {
-                matrix = arrayCopy(this.__luminances, inputOffset, matrix, 0, area);
-                return matrix;
-            }
-
-            var rgb = this.__luminances;
+            var matrix = new Uint8Array(area);
             for (var y = 0; y < height; y++) {
-                var outputOffset = y * width;
-                matrix = arrayCopy(rgb, inputOffset, matrix, outputOffset, width);
-                inputOffset += this.__dataWidth;
+                var yOffset = y * width * 4;
+                for (var x = 0; x < width; x++) {
+                    var offset = yOffset + x * 4;
+                    matrix[y * width + x] = (this.__pixels[offset] + 2 * this.__pixels[offset + 1] + this.__pixels[offset + 2]) / 4;
+                }
             }
+//            for (var y = 0; y < height; y++) {
+//                var outputOffset = y * width;
+//                matrix = arrayCopy(rgb, inputOffset, matrix, outputOffset, width);
+//                inputOffset += this.__dataWidth;
+//            }
             return matrix;
         },
 
