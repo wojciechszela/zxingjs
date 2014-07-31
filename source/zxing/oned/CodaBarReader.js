@@ -213,7 +213,7 @@ define([
             var theCounters = this.__counters;
 
             var maxBar = 0;
-            var minBar = Number.MAX_VALUE;
+            var minBar = Math.pow(2, 31) - 1; // Integer.MAX_VALUE;
             for (var j = position; j < end; j += 2) {
                 var currentCounter = theCounters[j];
                 if (currentCounter < minBar) {
@@ -226,7 +226,7 @@ define([
             var thresholdBar = Math.floor((minBar + maxBar) / 2);
 
             var maxSpace = 0;
-            var minSpace = Number.MAX_VALUE;
+            var minSpace = Math.pow(2, 31) - 1; // Integer.MAX_VALUE;
             for (var j = position + 1; j < end; j += 2) {
                 var currentCounter = theCounters[j];
                 if (currentCounter < minSpace) {

@@ -152,7 +152,7 @@ define([
             var maxNarrowCounter = 0;
             var wideCounters;
             do {
-                var minCounter = Number.MAX_VALUE;
+                var minCounter = Math.pow(2, 31) - 1; // Integer.MAX_VALUE;
                 for (var _i = 0; _i < counters.length; _i++) {
                     var counter = counters[_i];
                     if (counter < minCounter && counter > maxNarrowCounter) {

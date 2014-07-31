@@ -87,7 +87,7 @@ define([
          */
         initialize : function (source) {
             this.$super(source);
-            this.__pixels = new Uint8Array(0);
+            this.__pixels  = new Uint8Array(0);
             this.__buckets = new Uint32Array(this.$static.LUMINANCE_BUCKETS);
         },
 
@@ -140,7 +140,7 @@ define([
 
             for (var y = 1; y < 5; y++) {
                 var row = Math.floor(height * y / 5);
-                var localLuminances = source.getRow(row, luminances);
+                var localLuminances = source.getRow(row, this.__pixels);
                 var right = Math.floor((width * 4) / 5);
 
                 for (var x = Math.floor(width / 5); x < right; x++) {
@@ -151,11 +151,11 @@ define([
 
             var blackPoint = this.__estimateBlackPoint(localBuckets);
 
-            var localLuminances2 = source.getMatrix();
+            var localLuminances = source.getMatrix();
             for (var y = 0; y < height; y++) {
                 var offset = y * width;
                 for (var x = 0; x < width; x++) {
-                    var pixel = localLuminances2[offset + x] & 0xFF;
+                    var pixel = localLuminances[offset + x] & 0xFF;
                     if (pixel < blackPoint) {
                         matrix.set(x, y);
                     }
