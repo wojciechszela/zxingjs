@@ -10,8 +10,9 @@ define([
     'zxing/oned/ITFReader',
     'zxing/oned/CodaBarReader',
     'mout/lang/isArray',
-    'mout/lang/isObject'
-], function (FinalClass, OneDReader, DecodeHintType, BarcodeFormat, MultiFormatUPCEANReader, Code39Reader, Code93Reader, Code128Reader, ITFReader, CodaBarReader, isArray, isObject) {
+    'mout/lang/isObject',
+    'mout/array/contains'
+], function (FinalClass, OneDReader, DecodeHintType, BarcodeFormat, MultiFormatUPCEANReader, Code39Reader, Code93Reader, Code128Reader, ITFReader, CodaBarReader, isArray, isObject, contains) {
     'use strict';
 
     /**
