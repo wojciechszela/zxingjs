@@ -1,3 +1,10 @@
+Update
+======
+
+This code base is no longer being developed. I have started this project with intent to allow Firefox OS apps developers add barcode/qrcode scanning capability to their apps, as well build simple barcode/qrcode scanner. Since Mozilla withdrawal from Firefox OS project I see much less interest in this library.
+
+If anyone would like to continue porting feel free to fork the project. Let me know about the fork. I'm happy to link to it from README file.
+
 zxingjs
 =======
 
